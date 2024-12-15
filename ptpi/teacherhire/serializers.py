@@ -358,7 +358,7 @@ class PreferenceSerializer(serializers.ModelSerializer):
     )
     
     class_category = serializers.SlugRelatedField(
-        queryset=Role.objects.all(), slug_field='name',
+        queryset=ClassCategory.objects.all(), slug_field='name',
         required=False
     )
     
