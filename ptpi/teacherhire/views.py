@@ -833,12 +833,12 @@ class BasicProfileViewSet(viewsets.ModelViewSet):
         profile = BasicProfile.objects.filter(user=request.user).first()
 
         if profile:
-           return update_auth_data(
-               serialiazer_class=self.get_serializer_class(),
-               instance=profile,
-               request_data=data,
-               user=request.user
-           )
+            return update_auth_data(
+                serialiazer_class=self.get_serializer_class(),
+                instance=profile,
+                request_data=data,
+                user=request.user
+            )
         else:
             return create_auth_data(
                 serializer_class=self.get_serializer_class(),
@@ -854,10 +854,23 @@ class BasicProfileViewSet(viewsets.ModelViewSet):
         return self.retrieve(request, *args, **kwargs)
     
     def get_object(self):
-      try:
-        return BasicProfile.objects.get(user=self.request.user)
-      except BasicProfile.DoesNotExist:
-       raise NotFound({"detail": "Profile not found."})
+        """
+        Fetch the BasicProfile object for the logged-in user. 
+        If it doesn't exist, create one or return an appropriate response.
+        """
+        profile = BasicProfile.objects.filter(user=self.request.user).first()
+        if profile:
+            return profile
+        else:
+            # Option 1: Automatically create a profile for the user
+            data = {"user": self.request.user.id}
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return serializer.instance  # Return the newly created profile
+            
+            # Option 2: Raise an error response if creation fails
+            raise Response({"detail": "Profile not found and could not be created."}, status=status.HTTP_400_BAD_REQUEST)
 
 
     # def get_object(self):
