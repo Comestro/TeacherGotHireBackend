@@ -362,13 +362,13 @@ class PreferenceSerializer(serializers.ModelSerializer):
         required=False
     )
     
-    prefered_subject = serializers.SlugRelatedField(
-        queryset=Subject.objects.all(), slug_field='subject_name', many=True,
+    prefered_subject = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(), many=True,
         required=False
     )
     
-    teacher_job_type = serializers.SlugRelatedField(
-        queryset=TeacherJobType.objects.all(), slug_field='teacher_job_name', many=True,
+    teacher_job_type = serializers.PrimaryKeyRelatedField(
+        queryset=TeacherJobType.objects.all(), many=True,
         required=False
     )
     
