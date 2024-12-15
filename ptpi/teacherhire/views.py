@@ -627,15 +627,17 @@ class RoleViewSet(viewsets.ModelViewSet):
         instance.delete()
         return Response({"message": "Role deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-class PreferenceViewSet(viewsets.ModelViewSet):    
+class PreferenceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [ExpiringTokenAuthentication] 
-    queryset= Preference.objects.all()
+    authentication_classes = [ExpiringTokenAuthentication]
+    queryset = Preference.objects.all()
     serializer_class = PreferenceSerializer
+
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         data['user'] = request.user.id
         
+        # Check if the user already has a preference
         if Preference.objects.filter(user=request.user).exists():
             return Response({"detail": "Preference already exists."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -650,17 +652,18 @@ class PreferenceViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         data['user'] = request.user.id
         
+        # Check if the user has an existing preference
         profile = Preference.objects.filter(user=request.user).first()
 
         if profile:
-           return update_auth_data(
-               serialiazer_class=self.get_serializer_class(),
-               instance=profile,
-               request_data=data,
-               user=request.user
-           )
+            return self.update_auth_data(
+                serializer_class=self.get_serializer_class(),
+                instance=profile,
+                request_data=data,
+                user=request.user
+            )
         else:
-            return create_auth_data(
+            return self.create_auth_data(
                 serializer_class=self.get_serializer_class(),
                 request_data=data,
                 user=request.user,
@@ -672,12 +675,29 @@ class PreferenceViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
-    
+
     def get_object(self):
-      try:
-        return Preference.objects.get(user=self.request.user)
-      except Preference.DoesNotExist:
-       raise NotFound({"detail": "Preference not found."})
+        # Retrieve the preference object for the current user
+        try:
+            return Preference.objects.get(user=self.request.user)
+        except Preference.DoesNotExist:
+            raise NotFound({"detail": "Preference not found."})
+
+    def update_auth_data(self, serializer_class, instance, request_data, user):
+        """Handle updating preference data."""
+        serializer = serializer_class(instance, data=request_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def create_auth_data(self, serializer_class, request_data, user, model_class):
+        """Handle creating preference data."""
+        serializer = serializer_class(data=request_data)
+        if serializer.is_valid():
+            serializer.save(user=user)  # Assign the user to the new preference object
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
    
 class TeacherSubjectViewSet(viewsets.ModelViewSet):

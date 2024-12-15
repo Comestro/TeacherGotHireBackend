@@ -380,10 +380,18 @@ class PreferenceSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         representation['user'] = UserSerializer(instance.user).data
+        
         representation['job_role'] = RoleSerializer(instance.job_role).data
+        
         representation['class_category'] = ClassCategorySerializer(instance.class_category).data        
-        representation['prefered_subject'] = SubjectSerializer(instance.prefered_subject.all(), many=True).data
-        representation['teacher_job_type'] = TeacherJobTypeSerializer(instance.teacher_job_type.all(), many=True).data
+        
+        representation['prefered_subject'] = None
+        if instance.prefered_subject.exists():
+            representation['prefered_subject'] = SubjectSerializer(instance.prefered_subject.first()).data
+        
+        representation['teacher_job_type'] = None
+        if instance.teacher_job_type.exists():
+            representation['teacher_job_type'] = TeacherJobTypeSerializer(instance.teacher_job_type.first()).data
         
         return representation
 
