@@ -610,8 +610,8 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return Response({"message":" Question deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 class RoleViewSet(viewsets.ModelViewSet):    
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [ExpiringTokenAuthentication] 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [ExpiringTokenAuthentication] 
     queryset= Role.objects.all()
     serializer_class = RoleSerializer
     def create(self,request):
@@ -951,8 +951,8 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Customuser not found."}, status=status.HTTP_404_NOT_FOUND)
     
 class TeacherJobTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]    
-    authentication_classes = [ExpiringTokenAuthentication]
+    # permission_classes = [IsAuthenticated]    
+    # authentication_classes = [ExpiringTokenAuthentication]
     queryset = TeacherJobType.objects.all()
     serializer_class = TeacherJobTypeSerializer
 
