@@ -653,9 +653,9 @@ class PreferenceViewSet(viewsets.ModelViewSet):
         data['user'] = request.user.id
         
         # Check if the user has an existing preference
-        profile = Preference.objects.filter(user=request.user).first()
+        preference = Preference.objects.filter(user=request.user).first()
 
-        if profile:
+        if preference:
             return self.update_auth_data(
                 serializer_class=self.get_serializer_class(),
                 instance=profile,
@@ -677,11 +677,16 @@ class PreferenceViewSet(viewsets.ModelViewSet):
         return self.retrieve(request, *args, **kwargs)
 
     def get_object(self):
-        # Retrieve the preference object for the current user
-        try:
-            return Preference.objects.get(user=self.request.user)
-        except Preference.DoesNotExist:
-            raise NotFound({"detail": "Preference not found."})
+        preference = Preference.objects.get(user=self.request.user)
+        if preference: 
+            return preference
+        else:
+            data = {"user": self.request.user.id}
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return serializer.instance
+            raise Response({"detail": "Teacher subject not found."}, status=status.HTTP_400_BAD_REQUEST)
 
     def update_auth_data(self, serializer_class, instance, request_data, user):
         """Handle updating preference data."""
@@ -740,10 +745,17 @@ class SingleTeacherSubjectViewSet(viewsets.ModelViewSet):
     # def list(self, request, *args, **kwargs):
     #     return self.retrieve(request, *args, **kwargs)
     def get_object(self):
-        try: 
-            return TeacherSubject.objects.get(user=self.request.user)
-        except TeacherSubject.DoesNotExist:
-            raise NotFound({"detail": "TeacherSubject not found."})
+        teacher_subject = TeacherSubject.objects.get(user=self.request.user)
+        if teacher_subject: 
+            return teacher_subject
+        else:
+            data = {"user": self.request.user.id}
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return serializer.instance
+            raise Response({"detail": "Teacher subject not found."}, status=status.HTTP_400_BAD_REQUEST)
+        
     def put(self, request, *args, **kwargs):
         data = request.data.copy()
         data['user'] = request.user.id
@@ -766,8 +778,8 @@ class SingleTeacherSubjectViewSet(viewsets.ModelViewSet):
             )
     def delete(self, request, *args, **kwargs):
         try:
-            profile = TeacherSubject.objects.get(user=request.user)
-            profile.delete()
+            teacher_subject = TeacherSubject.objects.get(user=request.user)
+            teacher_subject.delete()
             return Response({"detail": "TeacherSubject deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
         except TeacherSubject.DoesNotExist:
             return Response({"detail": "TeacherSubject not found."}, status=status.HTTP_404_NOT_FOUND)
