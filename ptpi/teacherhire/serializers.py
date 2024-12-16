@@ -128,7 +128,7 @@ class TeacherExperiencesSerializer(serializers.ModelSerializer):
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = ['id', 'subject_name', 'subject_description']
+        fields = ['id', 'subject_name']
 
     def validate_subject_name(self, value):
         if Subject.objects.filter(subject_name=value).exists():
